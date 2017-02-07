@@ -59,7 +59,10 @@ window.addEventListener('load', function(){
 
       // Creates the audio context to be used to recordo
       var audioContext = new AudioContext();
-      var mediaStreamAudioSource = audioContext.createMediaStreamSource(mediaStream);
+      var audioTrack = mediaStream.getAudioTracks()[0];
+      mediaStream.removeTrack(audioTrack);
+
+      var mediaStreamAudioSource = audioContext.createMediaStreamSource(new MediaStream([audioTrack]));
       var micDestination = audioContext.createMediaStreamDestination();
       var volumeGainNode = audioContext.createGain();
       volumeGainNode.gain.value = 0.5; // This is used to control the recording mic volume
@@ -67,12 +70,10 @@ window.addEventListener('load', function(){
       mediaStreamAudioSource.connect(volumeGainNode);
 
       // Creates a new stream using the audio context above      
-      var recordingStream = new MediaStream();
-      recordingStream.addTrack(mediaStream.getVideoTracks()[0]);
-      recordingStream.addTrack(micDestination.stream.getAudioTracks()[0]);
+      mediaStream.addTrack(micDestination.stream.getAudioTracks()[0]);
       
       var recorder = new MediaRecorder(
-        recordingStream,
+        mediaStream,
         {
           mimeType: mimeType,
           audioBitsPerSecond: 128000, // ~128kbps
